@@ -1,0 +1,55 @@
+---
+
+- name: Undeploy mysql Service
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Service
+    namespace: default
+    name: "{{ mysql_service_name }}"
+    state: absent
+
+- name: Undeploy mysql Pod
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Deployment
+    namespace: default
+    name: "{{ mysql_deployment_name }}"
+    state: absent
+
+- name: Undeploy mysql pvc
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: PersistentVolumeClaim
+    namespace: default
+    name: "{{ mysql_pv_claim_name }}"
+    state: absent
+  when: delete_data is defined and (delete_data)
+
+- name: Undeploy mysql pv
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: PersistentVolume
+    namespace: default
+    name: "{{ mysql_pv_name }}"
+    state: absent
+  when: delete_data is defined and (delete_data)
+
+- name: Undeploy storage class
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: StorageClass
+    namespace: default
+    name: "{{ storage_class_name }}"
+    state: absent
+  when: delete_data is defined and (delete_data)
+
+- name: Destroy disk
+  google.cloud.gcp_compute_disk:
+    name: "{{ gcp_disk_name }}"
+    size_gb: "{{ gcp_disk_size }}"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_auth_kind }}"
+    service_account_file: "{{ gcp_cred_file }}"
+    state: absent
+  when: delete_data is defined and (delete_data)

@@ -13,11 +13,28 @@ all:
   gcp_disk_size_gb: 100                # Can be changed if necessary
   gcp_initial_node_count: 2            # Number of nodes to create. Can be changed if necessary
 
+  # CGP Disk variables
+  gcp_disk_name: ascn-disk
+  gcp_disk_size: 10
+
+  delete__data: false
 
   # APP variables
   ghost_ip: <GHOST_SERVICE_IP>     # Needs to be updated
   ghost_port: <GHOST_PORT>         # Needs to be updated
 
 
-  # Additional variables
-  # ...
+  # Storage Class variables
+  storage_class_name: ascn-sc
+
+  # mySql variables
+  mysql_pv_name: mysql-pv
+  mysql_pv_claim_name: mysql-pv-claim
+  mysql_deployment_name: mysql-deployment
+  mysql_service_name: mysql-service
+
+  mysql_database_name: ghost-database
+  mysql_database_user: ghost-database-user
+  mysql_database_password: "123456"
+  
+  mysql_port: 3306

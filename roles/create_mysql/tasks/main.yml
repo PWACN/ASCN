@@ -1,0 +1,131 @@
+---
+
+- name: Create Compute Disk
+  google.cloud.gcp_compute_disk:
+    name: "{{ gcp_disk_name }}"
+    size_gb: "{{ gcp_disk_size }}"
+    zone: "{{ gcp_zone }}"
+    project: "{{ gcp_project }}"
+    auth_kind: "{{ gcp_auth_kind }}"
+    service_account_file: "{{ gcp_cred_file }}"
+    state: present
+
+- name: Create Storage Class 
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: StorageClass
+      metadata:
+        name: "{{ storage_class_name }}"
+        namespace: default
+      provisioner: kubernetes.io/gce-pd
+      volumeBindingMode: WaitForFirstConsumer
+      allowVolumeExpansion: false
+      reclaimPolicy: Retain
+      parameters:
+        type: pd-standard
+        fstype: ext4
+        replication-type: none
+
+- name: Create mysql PV
+  kubernetes.core.k8s:
+    state: present
+    definition: 
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "{{ mysql_pv_name }}"
+      spec:
+        storageClassName: "{{ storage_class_name }}"
+        capacity:
+          storage: 5Gi
+        accessModes:
+          - ReadWriteOnce
+        claimRef:
+          namespace: default
+          name: "{{ mysql_pv_claim_name }}"
+        gcePersistentDisk:
+          pdName: "{{ gcp_disk_name }}"
+          fsType: ext4
+
+- name: Create mysql PVC
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ mysql_pv_claim_name }}"
+        namespace: default
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 4Gi
+        storageClassName: "{{ storage_class_name }}"
+
+- name: Create mysql Pod
+  kubernetes.core.k8s:  
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Deployment
+      metadata:
+        name: "{{ mysql_deployment_name }}"
+        namespace: default
+        labels:
+          app: mysql
+          tier: database
+      spec:
+        selector:
+          matchLabels:
+            app: mysql
+        template:
+          metadata:
+            labels:
+              app: mysql
+              tier: database
+          spec:
+            containers:
+            - name: mysql
+              image: mysql:latest
+              env: # The variables below could be set on a ConfigMap object
+              - name: MYSQL_ALLOW_EMPTY_PASSWORD
+                value: "true"
+              - name: MYSQL_DATABASE
+                value: "{{ mysql_database_name }}"
+              - name: MYSQL_USER
+                value: "{{ mysql_database_user }}"
+              - name: MYSQL_PASSWORD
+                value: "{{ mysql_database_password }}" # Use Secret object in real usage
+              ports:
+              - containerPort: "{{ mysql_port }}"
+              volumeMounts:
+              - name: "{{ mysql_pv_name }}"
+                mountPath: /var/lib/mysql
+            volumes:
+            - name: "{{ mysql_pv_name }}"
+              persistentVolumeClaim:
+                claimName: "{{ mysql_pv_claim_name }}"
+
+- name: Create Mysql Service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ mysql_service_name }}" # logical name of the service, which will also become the DNS name of the service when it is created.
+        namespace: default
+        labels:
+          app: mysql
+          tier: database
+      spec:
+        type: ClusterIP
+        selector:
+          app: mysql
+        ports:
+          - targetPort: "{{ mysql_port }}" # port that containers are listening on
+            port: "{{ mysql_port }}" # port number exposed internally in the cluster

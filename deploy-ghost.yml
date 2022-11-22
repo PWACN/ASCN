@@ -3,11 +3,11 @@
 # TO DO
 
 #Criar PV
-- name: Create PV
+- name: Create Mysql
   hosts: localhost
   gather_facts: true
   roles:
-    - create_pv
+    - create_mysql
 
 #- name: mysql Install
 #  hosts: localhost
