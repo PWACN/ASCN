@@ -1,0 +1,84 @@
+---
+- name: Create Build Dir
+  file:
+    path: ./demo-dockerfile
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: copy Dockerfile
+  copy:
+    src: ./inventory/Dockerfile
+    dest: ./demo-dockerfile/Dockerfile
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Create Docker Image
+  community.docker.docker_image:
+    name: ghostim:latest
+    build:
+      path: ./demo-dockerfile
+    source: build
+
+- name: Deploy Ghost
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Deployment
+      metadata:
+        name: "{{ ghost_deployment_name }}"
+        namespace: default
+        labels:
+          app: ghost
+          tier: app 
+      spec:
+        selector:
+          matchLabels:
+            app: ghost
+        strategy:
+          type: Recreate
+        template:
+          metadata:
+            labels:
+              app: ghost
+              tier: app
+          spec:
+            containers:
+            - name: ghost
+              image: ghostim:latest
+              env:
+                - name: DBHOST
+                  value: "{{ mysql_service_name }}"
+                - name: DBUSER
+                  value: "{{ mysql_database_user }}"
+                - name: DBPASS
+                  value: "{{ mysql_database_password }}"
+                - name: DBNAME
+                  value: "{{ mysql_database_name }}"
+              imagePullPolicy: Never
+              ports:
+              - containerPort: "{{ ghost_internal_port }}"
+
+- name: Deploy Ghost Service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ ghost_service_name }}"
+        namespace: default
+        labels:
+          app: ghost
+          tier: database
+      spec:
+        type: LoadBalancer
+        selector:
+          app: ghost
+        loadBalancerIp : "{{ ghost_ip }}"
+        ports:
+          - targetPort: "{{ ghost_internal_port }}" # port that containers are listening on
+            port: "{{ ghost_port }}" # port number exposed internally in the cluster

@@ -6,6 +6,8 @@ ENV DBHOST localhost
 ENV DBUSER ghost
 ENV DBPASS 123
 ENV DBNAME ghost_dev
+ENV GHOSTPORT 8000
+ENV GHOSTIP 127.0.0.1
 
 RUN useradd -ms /bin/bash "$GHOSTUSER"
 RUN usermod -aG sudo "$GHOSTUSER"
@@ -38,8 +40,6 @@ RUN apt-get upgrade -y
 
 RUN npm install ghost-cli@latest -g
 
-RUN ghost config --db mysql --dbhost "$DBHOST" --dbuser "DBUSER" --dbpass "DBPASS" --dbname "DBNAME" 
-
 RUN mkdir -p /var/www/"$WEBSITENAME"
 RUN chown "$GHOSTUSER":"$GHOSTUSER" /var/www/"$WEBSITENAME"
 RUN chmod 775 /var/www/"$WEBSITENAME"
@@ -49,4 +49,6 @@ WORKDIR /home/"$GHOSTUSER"
 
 WORKDIR /var/www/"$WEBSITENAME"
 
-CMD ghost install 
+CMD ghost config --db mysql --dbhost "$DBHOST" --dbuser "DBUSER" --dbpass "DBPASS" --dbname "DBNAME" &&  \
+    ghost config --port "$GHOSTPORT" --ip "$GHOSTIP" && \
+    ghost install 

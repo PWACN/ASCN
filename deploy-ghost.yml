@@ -9,6 +9,12 @@
   roles:
     - create_mysql
 
+- name: Create Ghost
+  hosts: localhost
+  gather_facts: true
+  roles:
+    - create_ghost
+
 #- name: mysql Install
 #  hosts: localhost
 #  gather_facts: true
