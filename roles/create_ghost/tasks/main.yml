@@ -1,26 +1,12 @@
 ---
-- name: Create Build Dir
-  file:
-    path: ./demo-dockerfile
-    state: directory
-    owner: root
-    group: root
-    mode: '0755'
 
-- name: copy Dockerfile
-  copy:
-    src: ./inventory/Dockerfile
-    dest: ./demo-dockerfile/Dockerfile
-    owner: root
-    group: root
-    mode: '0644'
-
-- name: Create Docker Image
-  community.docker.docker_image:
-    name: ghostim:latest
-    build:
-      path: ./demo-dockerfile
-    source: build
+#- name: Create Docker Image
+#  become: yes
+#  community.docker.docker_image:
+#    name: ghostim:latest
+#    build:
+#      path: ./inventory/
+#    source: build
 
 - name: Deploy Ghost
   kubernetes.core.k8s:
@@ -48,7 +34,8 @@
           spec:
             containers:
             - name: ghost
-              image: ghostim:latest
+              #image: ghostim:latest
+              image: alexandredanielsoares/ghost:latest
               env:
                 - name: DBHOST
                   value: "{{ mysql_service_name }}"
@@ -58,7 +45,7 @@
                   value: "{{ mysql_database_password }}"
                 - name: DBNAME
                   value: "{{ mysql_database_name }}"
-              imagePullPolicy: Never
+              #imagePullPolicy: Never
               ports:
               - containerPort: "{{ ghost_internal_port }}"
 
@@ -78,7 +65,7 @@
         type: LoadBalancer
         selector:
           app: ghost
-        loadBalancerIp : "{{ ghost_ip }}"
+        loadBalancerIP : "{{ ghost_ip }}"
         ports:
           - targetPort: "{{ ghost_internal_port }}" # port that containers are listening on
             port: "{{ ghost_port }}" # port number exposed internally in the cluster

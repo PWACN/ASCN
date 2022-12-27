@@ -38,8 +38,6 @@ RUN apt-get install -y nodejs
 RUN apt-get update -y
 RUN apt-get upgrade -y
 
-RUN npm install ghost-cli@latest -g
-
 RUN mkdir -p /var/www/"$WEBSITENAME"
 RUN chown "$GHOSTUSER":"$GHOSTUSER" /var/www/"$WEBSITENAME"
 RUN chmod 775 /var/www/"$WEBSITENAME"
@@ -48,6 +46,8 @@ USER "$GHOSTUSER"
 WORKDIR /home/"$GHOSTUSER"
 
 WORKDIR /var/www/"$WEBSITENAME"
+
+RUN npm install ghost-cli@latest -g
 
 CMD ghost config --db mysql --dbhost "$DBHOST" --dbuser "DBUSER" --dbpass "DBPASS" --dbname "DBNAME" &&  \
     ghost config --port "$GHOSTPORT" --ip "$GHOSTIP" && \

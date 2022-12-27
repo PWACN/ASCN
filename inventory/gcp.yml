@@ -20,7 +20,7 @@ all:
   delete__data: false
 
   # APP variables
-  ghost_ip:  34.111.46.108     # Needs to be updated
+  ghost_ip: 34.111.46.108    # Needs to be updated
   ghost_port: 80        # Needs to be updated
   ghost_service_name: ghost-service
   ghost_internal_port: 8000
