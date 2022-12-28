@@ -60,12 +60,13 @@
         namespace: default
         labels:
           app: ghost
-          tier: database
+          tier: app
       spec:
         type: LoadBalancer
         selector:
           app: ghost
-        loadBalancerIP : "{{ ghost_ip }}"
+        #loadBalancerIP : "{{ ghost_ip }}"
         ports:
-          - targetPort: "{{ ghost_internal_port }}" # port that containers are listening on
-            port: "{{ ghost_port }}" # port number exposed internally in the cluster
+          - targetPort: "{{ ghost_internal_port }}" # port that containers are listening on 
+            port: "{{ ghost_internal_port }}" # port number exposed internally in the cluster
+            nodePort: "{{ ghost_port }}"
