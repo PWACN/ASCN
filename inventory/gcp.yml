@@ -20,10 +20,10 @@ all:
   delete__data: false
 
   # APP variables
-  ghost_ip: 34.111.46.108    # Needs to be updated
-  ghost_port: 30010        # Needs to be updated
+  ghost_ip:   34.170.87.189     # Needs to be updated
+  ghost_port: 80        # Needs to be updated
   ghost_service_name: ghost-service
-  ghost_internal_port: 8080
+  ghost_internal_port: 2368
   ghost_deployment_name: ghost-deployment
 
   # Storage Class variables

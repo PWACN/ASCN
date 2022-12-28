@@ -24,8 +24,6 @@
         selector:
           matchLabels:
             app: ghost
-        strategy:
-          type: Recreate
         template:
           metadata:
             labels:
@@ -34,18 +32,22 @@
           spec:
             containers:
             - name: ghost
-              #image: ghostim:latest
-              image: alexandredanielsoares/ghost:latest
+              image: ghost:5.14.1
               env:
-                - name: DBHOST
-                  value: "{{ mysql_service_name }}"
-                - name: DBUSER
-                  value: "{{ mysql_database_user }}"
-                - name: DBPASS
-                  value: "{{ mysql_database_password }}"
-                - name: DBNAME
-                  value: "{{ mysql_database_name }}"
-              #imagePullPolicy: Never
+              - name: url
+                value: http://{{ ghost_ip }}:{{ ghost_port }}
+              - name: database
+                value: mysql
+              - name: database__connection__host
+                value: "{{ mysql_service_name }}"
+              - name: database__connection__user
+                value: "{{ mysql_database_user }}"
+              - name: database__connection__password
+                value: "{{ mysql_database_password }}"
+              - name: database__connection__database
+                value: "{{ mysql_database_name }}"
+              - name: NODE_ENV
+                value: development
               ports:
               - containerPort: "{{ ghost_internal_port }}"
 
@@ -65,8 +67,7 @@
         type: LoadBalancer
         selector:
           app: ghost
-        #loadBalancerIP : "{{ ghost_ip }}"
+        loadBalancerIP : "{{ ghost_ip }}"
         ports:
           - targetPort: "{{ ghost_internal_port }}" # port that containers are listening on 
-            port: "{{ ghost_internal_port }}" # port number exposed internally in the cluster
-            nodePort: "{{ ghost_port }}"
+            port: "{{ ghost_port }}" # port number exposed internally in the cluster

@@ -36,7 +36,7 @@ RUN mkdir -p /var/www/"$WEBSITENAME"
 RUN chown "$GHOSTUSER":"$GHOSTUSER" /var/www/"$WEBSITENAME"
 RUN chmod 775 /var/www/"$WEBSITENAME"
 
-#USER "$GHOSTUSER"
+USER "$GHOSTUSER"
 #WORKDIR /home/"$GHOSTUSER"
 
 WORKDIR /var/www/"$WEBSITENAME"
