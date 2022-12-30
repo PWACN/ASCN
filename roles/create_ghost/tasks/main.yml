@@ -1,12 +1,32 @@
 ---
 
-#- name: Create Docker Image
-#  become: yes
-#  community.docker.docker_image:
-#    name: ghostim:latest
-#    build:
-#      path: ./inventory/
-#    source: build
+- name: Deploy Ghost Service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ ghost_service_name }}"
+        namespace: default
+        labels:
+          app: ghost
+          tier: app
+      spec:
+        type: LoadBalancer
+        selector:
+          app: ghost
+        ports:
+          - targetPort: "{{ ghost_internal_port }}" # port that containers are listening on 
+            port: "{{ ghost_port }}" # port number exposed internally in the cluster
+
+- name: Wait until Service IP
+  shell: bash ./inventory/verify_ip.sh {{ ghost_service_name }}
+  register: command_output
+
+- name: Get IP
+  set_fact:
+    ghost_ip: "{{ command_output.stdout }}"
 
 - name: Deploy Ghost
   kubernetes.core.k8s:
@@ -34,40 +54,68 @@
             - name: ghost
               image: ghost:5.14.1
               env:
+              - name: NODE_ENV
+                value: production
               - name: url
-                value: http://{{ ghost_ip }}:{{ ghost_port }}
-              - name: database
+                value: "http://{{ ghost_ip }}:{{ ghost_port }}"
+              - name: database__client
                 value: mysql
               - name: database__connection__host
                 value: "{{ mysql_service_name }}"
+              - name: database__connection__port
+                value: '"{{ mysql_port }}"'
               - name: database__connection__user
                 value: "{{ mysql_database_user }}"
               - name: database__connection__password
                 value: "{{ mysql_database_password }}"
               - name: database__connection__database
                 value: "{{ mysql_database_name }}"
-              - name: NODE_ENV
-                value: development
+              - name: mail__transport
+                value: "SMTP"
+              - name: mail__options__host
+                value: "{{ ghost_mail_host }}"
+              - name: mail___options__port
+                vaule: 465
+              - name: mail__options__service
+                value: "SES"
+              - name: mail__options__auth__user
+                value: "{{ ghost_mail_user }}"
+              - name: mail__options__auth__pass
+                value: "{{ ghost_mail_pass }}"
               ports:
               - containerPort: "{{ ghost_internal_port }}"
 
-- name: Deploy Ghost Service
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: "{{ ghost_service_name }}"
-        namespace: default
-        labels:
-          app: ghost
-          tier: app
-      spec:
-        type: LoadBalancer
-        selector:
-          app: ghost
-        loadBalancerIP : "{{ ghost_ip }}"
-        ports:
-          - targetPort: "{{ ghost_internal_port }}" # port that containers are listening on 
-            port: "{{ ghost_port }}" # port number exposed internally in the cluster
+#- name: Get Deploy info
+#  kubernetes.core.k8s:
+#    api_version: v1
+#    kind: Deployment
+#    name: "{{ ghost_deployment_name }}"
+#    namespace: default
+#  register: ghost_deployment
+#
+#- name: Print return information from the previous task
+#  ansible.builtin.debug:
+#    var: ghost_deployment
+#
+#- name: Modify Conf File
+#  ansible.builtin.template:
+#    src:  ./inventory/config.example
+#    dest: ./inventory/config.prodution.json
+#
+#- name: Copy Conf File
+#  kubernetes.core.k8s_cp:
+#    namespace: default
+#    pod: "{{ ghost_deployment_name }}"
+#    remote_path: ./config.porduction.json
+#    local_path: ./inventory/config.production.json
+#
+#- name: Remove Conf File
+#  ansible.builtin.file:
+#    path: ./inventory/config.production.json
+#    state: absent
+#
+#- name: Restart Ghost
+#  kubernetes.core.k8s_exec:
+#    namespace: default
+#    pod: "{{ ghost_deploym#ent_name }}"
+#    command: ghost restart

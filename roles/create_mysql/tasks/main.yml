@@ -110,6 +110,10 @@
               persistentVolumeClaim:
                 claimName: "{{ mysql_pv_claim_name }}"
 
+- name: WAIT 
+  ansible.builtin.pause:
+    seconds: 30
+
 - name: Create Mysql Service
   kubernetes.core.k8s:
     state: present
@@ -129,3 +133,7 @@
         ports:
           - targetPort: "{{ mysql_port }}" # port that containers are listening on
             port: "{{ mysql_port }}" # port number exposed internally in the cluster
+
+- name: WAIT 
+  ansible.builtin.pause:
+    seconds: 30

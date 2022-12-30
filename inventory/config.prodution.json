@@ -1,0 +1,39 @@
+{
+    "url": "http://34.122.212.0:80",
+    "server": {
+      "port": 80,
+      "host": "34.122.212.0"
+    },
+    "mail": {
+      "transport": "SMTP",
+      "options": {
+        "host": "YOUR-SES-SERVER-NAME",
+        "port": 465,
+        "service": "SES",
+        "auth": {
+            "user": "AKIASJLINPY2B4KFT56P",
+            "pass": "vGMPfoTc0dvAmNAf/6n0cU3MU1J2j9Mhj2mB0LSK"
+        }
+      }
+    },
+    "database": {
+        "client": "mysql",
+        "connection": {
+          "host": "mysql-service",
+          "port": 3306 ,
+          "user": "ghost-database-user",
+          "password": "123456",
+          "database": "ghost-database"
+        }
+    },      
+    "logging": {
+      "transports": [
+        "file",
+        "stdout"
+      ]
+    },
+    "process": "systemd",
+    "paths": {
+      "contentPath": "/var/lib/ghost/content"
+    }
+  }

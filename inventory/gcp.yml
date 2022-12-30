@@ -20,11 +20,16 @@ all:
   delete__data: false
 
   # APP variables
-  ghost_ip:   34.170.87.189     # Needs to be updated
+  ghost_ip:      # Needs to be updated
   ghost_port: 80        # Needs to be updated
   ghost_service_name: ghost-service
   ghost_internal_port: 2368
   ghost_deployment_name: ghost-deployment
+
+  # Ghost mail variables
+  ghost_mail_host: "ses-smtp-user.20221230-173524" #isto pode estar mal
+  ghost_mail_user: "AKIASJLINPY2B4KFT56P"
+  ghost_mail_pass: "vGMPfoTc0dvAmNAf/6n0cU3MU1J2j9Mhj2mB0LSK"
 
   # Storage Class variables
   storage_class_name: ascn-sc
@@ -37,6 +42,6 @@ all:
 
   mysql_database_name: ghost-database
   mysql_database_user: ghost-database-user
-  mysql_database_password: "123456"
+  mysql_database_password: 123a456
   
   mysql_port: 3306

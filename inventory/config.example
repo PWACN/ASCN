@@ -1,0 +1,39 @@
+{
+    "url": "http://{{ ghost_ip }}:{{ ghost_port }}",
+    "server": {
+      "port": {{ ghost_port }},
+      "host": "{{ ghost_ip }}"
+    },
+    "mail": {
+      "transport": "SMTP",
+      "options": {
+        "host": {{ ghost_mail_host }},
+        "port": 465,
+        "service": "SES",
+        "auth": {
+            "user": "{{ ghost_mail_user }}",
+            "pass": "{{ ghost_mail_pass }}"
+        }
+      }
+    },
+    "database": {
+        "client": "mysql",
+        "connection": {
+          "host": "{{ mysql_service_name }}",
+          "port": {{ mysql_port }} ,
+          "user": "{{ mysql_database_user }}",
+          "password": "{{ mysql_database_password }}",
+          "database": "{{ mysql_database_name }}"
+        }
+    },      
+    "logging": {
+      "transports": [
+        "file",
+        "stdout"
+      ]
+    },
+    "process": "systemd",
+    "paths": {
+      "contentPath": "/var/lib/ghost/content"
+    }
+  }
