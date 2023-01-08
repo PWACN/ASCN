@@ -20,8 +20,8 @@ all:
   delete__data: false
 
   # APP variables
-  ghost_ip:      # Needs to be updated
-  ghost_port: 80        # Needs to be updated
+  ghost_ip: 
+  ghost_port: 80
   ghost_service_name: ghost-service
   ghost_internal_port: 2368
   ghost_deployment_name: ghost-deployment
@@ -45,3 +45,7 @@ all:
   mysql_database_password: 123a456
   
   mysql_port: 3306
+
+  admin_username: admin
+  admin_password: adminPassword
+  admin_email: pg50683@alunos.uminho.pt

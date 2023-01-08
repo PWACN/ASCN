@@ -1,8 +1,6 @@
 ---
 # Playbook to deploy Ghost and its components
-# TO DO
 
-#Criar PV
 - name: Create Mysql
   hosts: localhost
   gather_facts: true
@@ -15,14 +13,8 @@
   roles:
     - create_ghost
 
-#- name: mysql Install
-#  hosts: localhost
-#  gather_facts: true
-#  roles: 
-#    - mysql_install
-#
-#- name: ghost Install
-#  hosts: localhost
-#  gather_facts: true
-#  roles:
-#    - ghost_install
+- name: Add admin
+  hosts: localhost
+  gather_facts: true
+  roles:
+    - add_admin

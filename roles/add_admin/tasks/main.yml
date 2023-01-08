@@ -1,0 +1,29 @@
+---
+
+- name: Hash Pass 
+  shell: python3 -c 'import bcrypt; print(bcrypt.hashpw(b"{{ admin_password }}", bcrypt.gensalt(rounds=10)).decode("ascii"))'
+  register: command_output
+
+- name: Get Hash
+  set_fact:
+    hash_pre_filter: "{{ command_output.stdout }}"
+
+- name: Filter password
+  set_fact:
+    hash: "{{ hash_pre_filter | regex_replace('\\$', '\\\\$') }}"
+
+- name: Get Mysql Deployment
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    label_selectors:
+      - app = mysql
+    namespace: default
+  register: deploy_info
+
+- name: Create Admin
+  kubernetes.core.k8s_exec:
+    namespace: default
+    pod: "{{ deploy_info.resources[0].metadata.name }}"
+    command: mysql --user="{{ mysql_database_user }}" --password="{{ mysql_database_password }}" --database="{{ mysql_database_name }}" --execute="UPDATE users SET name='{{ admin_username }}', password='{{ hash }}',  email='{{ admin_email }}', status='active' WHERE id=1;"
+

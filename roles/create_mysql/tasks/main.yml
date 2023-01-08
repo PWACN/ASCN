@@ -91,7 +91,7 @@
             containers:
             - name: mysql
               image: mysql:latest
-              env: # The variables below could be set on a ConfigMap object
+              env: 
               - name: MYSQL_ALLOW_EMPTY_PASSWORD
                 value: "true"
               - name: MYSQL_DATABASE
@@ -99,7 +99,7 @@
               - name: MYSQL_USER
                 value: "{{ mysql_database_user }}"
               - name: MYSQL_PASSWORD
-                value: "{{ mysql_database_password }}" # Use Secret object in real usage
+                value: "{{ mysql_database_password }}"
               ports:
               - containerPort: "{{ mysql_port }}"
               volumeMounts:
@@ -110,9 +110,21 @@
               persistentVolumeClaim:
                 claimName: "{{ mysql_pv_claim_name }}"
 
-- name: WAIT 
-  ansible.builtin.pause:
-    seconds: 30
+#- name: Get Mysql Pods
+#  kubernetes.core.k8s_info:
+#    api_version: v1
+#    kind: Pod
+#    label_selectors:
+#      - app = mysql
+#    namespace: default
+#  register: pods_info
+#
+#- name: Wait for all Mysql Pods
+#  ansible.builtin.pause:
+#    seconds: 5
+#  when: item.status.phase != "Running"
+#  retries: 10
+#  loop: "{{ pods_info.resources}}"
 
 - name: Create Mysql Service
   kubernetes.core.k8s:
@@ -121,7 +133,7 @@
       apiVersion: v1
       kind: Service
       metadata:
-        name: "{{ mysql_service_name }}" # logical name of the service, which will also become the DNS name of the service when it is created.
+        name: "{{ mysql_service_name }}"
         namespace: default
         labels:
           app: mysql
@@ -131,9 +143,5 @@
         selector:
           app: mysql
         ports:
-          - targetPort: "{{ mysql_port }}" # port that containers are listening on
-            port: "{{ mysql_port }}" # port number exposed internally in the cluster
-
-- name: WAIT 
-  ansible.builtin.pause:
-    seconds: 30
+          - targetPort: "{{ mysql_port }}" 
+            port: "{{ mysql_port }}" 
