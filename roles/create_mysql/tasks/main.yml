@@ -1,5 +1,17 @@
 ---
 
+- name: Get Previous Install Data
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: PersistentVolume
+    name: "{{ mysql_pv_name }}"
+    namespace: default
+  register: previous_pv
+
+- name: Check Previous Install Data
+  set_fact:
+    previous_install : "{{ previous_pv.resources[0].status.phase is defined and previous_pv.resources[0].status.phase == 'Bound' }}"
+
 - name: Create Compute Disk
   google.cloud.gcp_compute_disk:
     name: "{{ gcp_disk_name }}"
@@ -9,6 +21,7 @@
     auth_kind: "{{ gcp_auth_kind }}"
     service_account_file: "{{ gcp_cred_file }}"
     state: present
+  when: previous_install == false
 
 - name: Create Storage Class 
   kubernetes.core.k8s:
@@ -27,6 +40,7 @@
         type: pd-standard
         fstype: ext4
         replication-type: none
+  when: previous_install == false
 
 - name: Create mysql PV
   kubernetes.core.k8s:
@@ -48,6 +62,19 @@
         gcePersistentDisk:
           pdName: "{{ gcp_disk_name }}"
           fsType: ext4
+  when: previous_install == false
+
+- name: Wait For PV
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: PersistentVolume
+    name: "{{ mysql_pv_name }}"
+    namespace: default
+  register: pv_info
+  until: pv_info.resources[0].status.phase is defined and pv_info.resources[0].status.phase == "Available"
+  delay: 30
+  retries: 5
+  when: previous_install == false
 
 - name: Create mysql PVC
   kubernetes.core.k8s:
@@ -65,6 +92,19 @@
           requests:
             storage: 4Gi
         storageClassName: "{{ storage_class_name }}"
+  when: previous_install == false
+
+- name: Wait For PVC
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: PersistentVolumeClaim
+    name: "{{ mysql_pv_claim_name }}"
+    namespace: default
+  register: pvc_info
+  until: pvc_info.resources[0].status.phase is defined and pvc_info.resources[0].status.phase == "Bound"
+  delay: 30
+  retries: 5
+  when: previous_install == false
 
 - name: Create mysql Pod
   kubernetes.core.k8s:  
@@ -110,21 +150,17 @@
               persistentVolumeClaim:
                 claimName: "{{ mysql_pv_claim_name }}"
 
-#- name: Get Mysql Pods
-#  kubernetes.core.k8s_info:
-#    api_version: v1
-#    kind: Pod
-#    label_selectors:
-#      - app = mysql
-#    namespace: default
-#  register: pods_info
-#
-#- name: Wait for all Mysql Pods
-#  ansible.builtin.pause:
-#    seconds: 5
-#  when: item.status.phase != "Running"
-#  retries: 10
-#  loop: "{{ pods_info.resources}}"
+- name: Get Mysql Pods
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    label_selectors:
+      - app = mysql
+    namespace: default
+  register: pods_info
+  until: pods_info.resources[0].status.phase == "Running"
+  delay: 60
+  retries: 5
 
 - name: Create Mysql Service
   kubernetes.core.k8s:

@@ -17,4 +17,5 @@
   hosts: localhost
   gather_facts: true
   roles:
-    - add_admin
+    - role: add_admin
+      when: previous_install == false

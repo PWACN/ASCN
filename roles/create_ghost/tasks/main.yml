@@ -76,12 +76,14 @@
                 value: "{{ mysql_database_name }}"
               - name: mail__transport
                 value: "SMTP"
-              - name: mail__options__host
-                value: "{{ ghost_mail_host }}"
-              - name: mail___options__port
-                vaule: 465
               - name: mail__options__service
-                value: "SES"
+                value: "Mailgun"
+              - name: mail__options__host
+                value: "smtp.mailgun.org"
+              - name: mail___options__port
+                vaule: 587
+              - name: mail__options__secure
+                value: "true"
               - name: mail__options__auth__user
                 value: "{{ ghost_mail_user }}"
               - name: mail__options__auth__pass
@@ -89,18 +91,14 @@
               ports:
               - containerPort: "{{ ghost_internal_port }}"
 
-#- name: Get Ghost Pods
-#  kubernetes.core.k8s_info:
-#    api_version: v1
-#    kind: Pod
-#    label_selectors:
-#      - app = ghost
-#    namespace: default
-#  register: pods_info
-#
-#- name: Wait for all Ghost Pods
-#  ansible.builtin.pause:
-#    seconds: 5
-#  when: item.status.phase != "Running"
-#  retries: 10
-#  loop: "{{ pods_info.resources}}"
+- name: Get Ghost Pods
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    label_selectors:
+      - app = ghost
+    namespace: default
+  register: pods_info
+  until: pods_info.resources[0].status.phase == "Running"
+  delay: 60
+  retries: 5
