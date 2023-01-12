@@ -1,0 +1,82 @@
+---
+- name: Get Setup
+  command: wget -O setup.py https://raw.githubusercontent.com/GoogleCloudPlatform/prometheus-engine/v0.5.0/manifests/setup.yaml
+
+- name: Deploy Setup
+  kubernetes.core.k8s: 
+    state: present
+    src: setup.py
+
+- name: Remove Setup
+  ansible.builtin.file:
+    path: setup.py
+    state: absent
+
+- name: Get Operator
+  command: wget -O operator.py https://raw.githubusercontent.com/GoogleCloudPlatform/prometheus-engine/v0.5.0/manifests/operator.yaml
+
+- name: Deploy Operator
+  kubernetes.core.k8s: 
+    state: present
+    src: operator.py
+
+- name: Remove Operator
+  ansible.builtin.file:
+    path: operator.py
+    state: absent
+
+
+- name: Deploy Ghost Monitoring
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: monitoring.googleapis.com/v1
+      kind: PodMonitoring
+      metadata:
+        name: ghost-prom
+        app: ghost
+        namespace: default
+      spec:
+        selector:
+          matchLabels:
+            app: ghost
+        endpoints:
+        - port: metrics
+          interval: 30s
+
+- name: Deploy Mysql Monitoring
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: monitoring.googleapis.com/v1
+      kind: PodMonitoring
+      metadata:
+        name: mysql-prom
+        app: mysql
+        namespace: default
+      spec:
+        selector:
+          matchLabels:
+            app: mysql
+        endpoints:
+        - port: metrics
+          interval: 30s
+    
+- name: Get list of IP addresses of all VMs in GKE cluster
+  command: gcloud compute instances list --format json --filter="name ~ .*ascn-cluster.*"
+  register: vm_list
+
+- set_fact:
+    vm_ips: "{{ vm_list.stdout | from_json | json_query('[].networkInterfaces[].accessConfigs[0].natIP') }}"
+
+- name: Create Nodes File
+  ansible.builtin.lineinfile:
+    path: inventory/nodes.inv
+    line: "[nodes]"
+    create: yes
+
+- name: Save IPs
+  ansible.builtin.lineinfile:
+    path: inventory/nodes.inv
+    line: "{{ item }}"
+  loop: "{{ vm_ips }}"

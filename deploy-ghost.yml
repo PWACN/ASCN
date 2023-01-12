@@ -1,5 +1,21 @@
 ---
-# Playbook to deploy Ghost and its components
+- name: Create Prometheus
+  hosts: localhost
+  gather_facts: true
+  roles: 
+    - create_prometheus
+
+- name: Ops Agents
+  hosts: localhost
+  gather_facts: true
+  tasks:
+    - name: Ops Agents
+      command: ansible-playbook -i inventory/nodes.inv ops-agent.yml
+    
+    - name: Clear Nodes
+      ansible.builtin.file:
+        path: inventory/nodes.py
+        state: absent
 
 - name: Create Mysql
   hosts: localhost
