@@ -5,6 +5,14 @@
     line: '  ghost_ip:'
     regexp: '  ghost_ip: {{ ghost_ip }}'
 
+#- name: Undeploy AutoScaller
+#  kubernetes.core.k8s:
+#    apiVersion: autoscaling/v2
+#    kind: HorizontalPodAutoscaler
+#    namespace: default
+#    name: ghost-hpa
+#    state: absent
+
 - name: Undeploy ghost Service
   kubernetes.core.k8s:
     api_version: v1

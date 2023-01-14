@@ -20,7 +20,7 @@ all:
   delete_data: "false"
 
   # APP variables
-  ghost_ip: 34.171.66.84
+  ghost_ip:
   ghost_port: 80
   ghost_service_name: ghost-service
   ghost_internal_port: 2368
