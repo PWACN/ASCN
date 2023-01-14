@@ -47,3 +47,9 @@ all:
 
   dashboards: [ "./templates/Ghost_Dashboard.json", "./templates/MySql_Dashboard.json" ]
   dashboards_json: []
+
+  path_to_jmeter: ../apache-jmeter-5.5/bin/jmeter
+  benchmark_url: /
+  benchmark_threads: 100
+  benchmark_loops: 50
+  benchmark_rampup_time: 5

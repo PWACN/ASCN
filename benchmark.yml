@@ -1,0 +1,11 @@
+- name: BenchMark ghost
+  gather_facts: true
+  hosts: localhost
+  tasks:
+    - name: Create file
+      template:
+        src: ./templates/benchmark.jmx
+        dest: ./inventory/teste.jmx
+
+    - name: Do BenchMark
+      shell: "{{ path_to_jmeter }} -n -t ./inventory/teste.jmx -l ./output/output.csv -j ./output/logs.log"    
