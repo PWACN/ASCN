@@ -27,7 +27,7 @@
       </ThreadGroup>
       <hashTree>
         <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
-          <stringProp name="ConstantTimer.delay">300</stringProp>
+          <stringProp name="ConstantTimer.delay">{{ benchmark_time }}</stringProp>
         </ConstantTimer>
         <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request" enabled="true">

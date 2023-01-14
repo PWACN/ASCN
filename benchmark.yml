@@ -2,10 +2,15 @@
   gather_facts: true
   hosts: localhost
   tasks:
-    - name: Create file
+    - name: Create File
       template:
         src: ./templates/benchmark.jmx
         dest: ./inventory/teste.jmx
 
     - name: Do BenchMark
-      shell: "{{ path_to_jmeter }} -n -t ./inventory/teste.jmx -l ./output/output.csv -j ./output/logs.log"    
+      shell: "{{ path_to_jmeter }} -n -t ./inventory/teste.jmx -l ./output/output.csv -j ./output/logs.log"
+
+    - name: Clear Test File
+      file:
+        path: ./inventory/teste.jmx
+        state: absent    

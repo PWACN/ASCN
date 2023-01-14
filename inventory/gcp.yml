@@ -50,6 +50,7 @@ all:
 
   path_to_jmeter: ../apache-jmeter-5.5/bin/jmeter
   benchmark_url: /
-  benchmark_threads: 100
-  benchmark_loops: 50
+  benchmark_threads: 10
+  benchmark_loops: 5
   benchmark_rampup_time: 5
+  benchmark_time : 400
