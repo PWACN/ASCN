@@ -1,30 +1,33 @@
 ---
 - name: Get Setup
-  command: wget -O setup.py https://raw.githubusercontent.com/GoogleCloudPlatform/prometheus-engine/v0.5.0/manifests/setup.yaml
+  command: wget -O setup.yml https://raw.githubusercontent.com/GoogleCloudPlatform/prometheus-engine/v0.5.0/manifests/setup.yaml
 
 - name: Deploy Setup
   kubernetes.core.k8s: 
     state: present
-    src: setup.py
+    src: setup.yml
 
 - name: Remove Setup
   ansible.builtin.file:
-    path: setup.py
+    path: setup.yml
     state: absent
 
 - name: Get Operator
-  command: wget -O operator.py https://raw.githubusercontent.com/GoogleCloudPlatform/prometheus-engine/v0.5.0/manifests/operator.yaml
+  command: wget -O operator.yml https://raw.githubusercontent.com/GoogleCloudPlatform/prometheus-engine/v0.5.0/manifests/operator.yaml
 
 - name: Deploy Operator
   kubernetes.core.k8s: 
     state: present
-    src: operator.py
+    src: operator.yml
 
 - name: Remove Operator
   ansible.builtin.file:
-    path: operator.py
+    path: operator.yml
     state: absent
 
+- name: Wait
+  pause:
+    minutes: 2
 
 - name: Deploy Ghost Monitoring
   kubernetes.core.k8s:

@@ -36,7 +36,7 @@
     namespace: default
     name: "{{ mysql_deployment_name }}"
     state: absent
-
+ 
 - name: Undeploy mysql pvc
   kubernetes.core.k8s:
     api_version: v1
@@ -64,6 +64,31 @@
     state: absent
   when: delete_data is defined and delete_data == "true"
 
+- name: Wait until Ghost Pods undeploy
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Pod
+    label_selectors:
+      - app = mysql
+    namespace: default
+  register: pods_info
+  until: ( pods_info.resources | length == 0)
+  delay: 60
+  retries: 10
+  when: delete_data is defined and delete_data == "true"
+
+- name: Wait until Ghost PV undeploy
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: PersistentVolume
+    name: "{{ mysql_pv_name }}"
+    namespace: default
+  register: pvs_info
+  until: (pvs_info.resources | length == 0)
+  delay: 60
+  retries: 10
+  when: delete_data is defined and delete_data == "true"
+
 - name: Destroy disk
   google.cloud.gcp_compute_disk:
     name: "{{ gcp_disk_name }}"
@@ -74,3 +99,46 @@
     service_account_file: "{{ gcp_cred_file }}"
     state: absent
   when: delete_data is defined and delete_data == "true"
+
+- name: Undeploy ghost monitoring
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: PodMonitoring
+    namespace: default
+    name: ghost-prom
+    state: absent
+
+- name: Undeploy mysql monitoring
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: PodMonitoring
+    namespace: default
+    name: mysql-prom
+    state: absent
+
+
+- name: Get Setup
+  command: wget -O setup.yml https://raw.githubusercontent.com/GoogleCloudPlatform/prometheus-engine/v0.5.0/manifests/setup.yaml
+
+- name: Undeploy Setup
+  kubernetes.core.k8s: 
+    state: absent
+    src: setup.yml
+
+- name: Remove Setup
+  ansible.builtin.file:
+    path: setup.yml
+    state: absent
+
+- name: Get Operator
+  command: wget -O operator.yml https://raw.githubusercontent.com/GoogleCloudPlatform/prometheus-engine/v0.5.0/manifests/operator.yaml
+
+- name: Undeploy Operator
+  kubernetes.core.k8s: 
+    state: absent
+    src: operator.yml
+
+- name: Remove Operator
+  ansible.builtin.file:
+    path: operator.yml
+    state: absent

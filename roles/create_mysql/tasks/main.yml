@@ -119,6 +119,7 @@
           app: mysql
           tier: database
       spec:
+        replicas: 1
         selector:
           matchLabels:
             app: mysql
@@ -159,8 +160,8 @@
     namespace: default
   register: pods_info
   until: pods_info.resources[0].status.phase == "Running"
-  delay: 60
-  retries: 5
+  delay: 30
+  retries: 10
 
 - name: Create Mysql Service
   kubernetes.core.k8s:

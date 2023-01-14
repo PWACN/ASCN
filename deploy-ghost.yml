@@ -14,7 +14,7 @@
     
     - name: Clear Nodes
       ansible.builtin.file:
-        path: inventory/nodes.py
+        path: inventory/nodes.inv
         state: absent
 
 - name: Create Mysql
@@ -35,3 +35,9 @@
   roles:
     - role: add_admin
       when: previous_install == false
+
+#- name: Add AutoScaler 
+#  hosts: localhost
+#  gather_facts: true
+#  roles: 
+#    - add_autoscaler

@@ -101,4 +101,4 @@
   register: pods_info
   until: pods_info.resources[0].status.phase == "Running"
   delay: 60
-  retries: 5
+  retries: 10

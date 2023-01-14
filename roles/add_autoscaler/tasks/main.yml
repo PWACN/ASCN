@@ -1,0 +1,17 @@
+- name: Deploy AutoScaler
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: ghost-hpa
+        namespace: default
+      spec:
+        maxReplicas: 10
+        minReplicas: 1
+        scaleTargetRef:
+          apiVersion: v1
+          kind: Deployment
+          name: "{{ ghost_deployment_name }}"
+          targetCPUUtilizationPercentage: 75
